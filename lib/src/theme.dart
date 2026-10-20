@@ -45,11 +45,47 @@ FThemeData _smileyfaceTheme(Brightness brightness) {
   );
 }
 
-/// The yellow of smileyface.dev, behind the icon of the intro.
+/// The yellow of smileyface.dev, behind the icon of the intro and the send
+/// button.
 const _accent = Color(0xFFFFC93C);
 
 /// What stands on [_accent].
 const _accentForeground = Color(0xFF141414);
+
+/// The send button of the smileyface app's chat composer, the same on the
+/// website: a yellow circle with the arrow in ink, an ink border in light
+/// mode, lighter while pressed and faded while there is nothing to send.
+FButtonStyleDelta _sendButtonStyle(FColors colors) {
+  final disabledForeground = colors.disable(_accentForeground);
+  final lighter = Color.lerp(_accent, const Color(0xFFFFFFFF), 0.25);
+  return .delta(
+    decoration: FVariants.from(
+      ShapeDecoration(
+        shape: RoundedSuperellipseBorder(
+          side: colors.brightness == .light
+              ? BorderSide(color: colors.foreground, width: 2)
+              : BorderSide.none,
+          borderRadius: const .all(.circular(100)),
+        ),
+        color: _accent,
+      ),
+      variants: {
+        [.hovered, .pressed]: .shapeDelta(color: lighter),
+        [.disabled]: .shapeDelta(color: colors.disable(_accent)),
+      },
+    ),
+    iconContentStyle: FButtonIconContentStyle(
+      iconStyle: .from(
+        const IconThemeData(color: _accentForeground, size: 18),
+        variants: {
+          [.disabled]: .delta(color: disabledForeground),
+        },
+      ),
+      padding: const .all(14),
+      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+    ),
+  );
+}
 
 const _radius = FBorderRadius(
   xs2: .all(.circular(6)),

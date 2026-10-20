@@ -332,6 +332,9 @@ class _FeedbackPanel extends HookWidget {
                                             const SizedBox(width: 4),
                                             FButton.icon(
                                               variant: .secondary,
+                                              style: _sendButtonStyle(
+                                                context.theme.colors,
+                                              ),
                                               semanticsLabel: texts.send,
                                               onPress: canSend
                                                   ? () => unawaited(send())
