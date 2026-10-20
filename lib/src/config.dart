@@ -3,8 +3,8 @@ part of 'feedback.dart';
 /// How the feedback looks and what it says, apart from the app's theme:
 /// restyling the app leaves the feedback alone and the other way around.
 class SmileyfaceFeedbackConfig {
-  /// The feedback with [lightTheme] and [darkTheme], forui's neutral themes
-  /// by default, and [texts], English by default.
+  /// The feedback with [lightTheme] and [darkTheme], the look of
+  /// smileyface.dev by default, and [texts], English by default.
   const SmileyfaceFeedbackConfig({
     this.lightTheme,
     this.darkTheme,
@@ -20,10 +20,11 @@ class SmileyfaceFeedbackConfig {
     this.textSize = 18,
   });
 
-  /// The forui theme in light mode, forui's neutral theme when null.
+  /// The forui theme in light mode, the light look of smileyface.dev when
+  /// null.
   final FThemeData? lightTheme;
 
-  /// The forui theme in dark mode, forui's neutral theme when null.
+  /// The forui theme in dark mode, the dark look of smileyface.dev when null.
   final FThemeData? darkTheme;
 
   /// What the feedback says.
@@ -44,7 +45,7 @@ class SmileyfaceFeedbackConfig {
 
   /// The theme of the feedback in [brightness].
   FThemeData theme(Brightness brightness) => switch (brightness) {
-    Brightness.light => lightTheme ?? FTheme.neutral.light.touch,
-    Brightness.dark => darkTheme ?? FTheme.neutral.dark.touch,
+    Brightness.light => lightTheme ?? _smileyfaceTheme(brightness),
+    Brightness.dark => darkTheme ?? _smileyfaceTheme(brightness),
   };
 }

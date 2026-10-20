@@ -3,7 +3,8 @@
 The feedback of staging builds: testers shake the device and send a message, typed or dictated, and an annotated screenshot together with the state of the app to a URL.
 
 - **Shake to open**, on Android and iOS. The first start shows a "Shake it" intro, which a shake or Skip ends for good.
-- **A sheet at the bottom** with one row: the screenshot, attached with a tap and drawn and written on in an editor, the message, a microphone that dictates it and send.
+- **A sheet at the bottom** like the form sheets and the chat composer of the smileyface app: the screenshot as a pending attachment, drawn and written on in an editor, and one row with the attach button, the message, a microphone that dictates it and send.
+- **The look of smileyface.dev**, apart from the app's theme: ink, cream and yellow, Bricolage Grotesque and Figtree, which the package brings with their licenses.
 - **The state of the app** goes with it: app and device, the open blocs with their recent events and errors, the widgets on the screen and, if the app gives it, its local data.
 
 ## Setup
@@ -41,7 +42,7 @@ runApp(
 );
 ```
 
-`SmileyfaceFeedbackConfig` changes the look, apart from the app's theme, and `SmileyfaceFeedbackTexts` what it says, e.g. in German:
+`SmileyfaceFeedbackConfig` changes the look, e.g. `lightTheme` and `darkTheme` for other forui themes, and `SmileyfaceFeedbackTexts` what it says, e.g. in German:
 
 ```dart
 SmileyfaceFeedback(

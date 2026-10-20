@@ -31,5 +31,6 @@ part 'intro.dart';
 part 'overlay.dart';
 part 'panel.dart';
 part 'texts.dart';
+part 'theme.dart';
 
 final _logger = Logger('smileyface_feedback');

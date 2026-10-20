@@ -4,6 +4,7 @@ part of 'feedback.dart';
 class SmileyfaceFeedbackTexts {
   /// The texts, each English unless given.
   const SmileyfaceFeedbackTexts({
+    this.title = 'Feedback',
     this.introTitle = 'Shake it',
     this.introBody =
         'Shake your device on any screen to send feedback: tell what '
@@ -30,6 +31,9 @@ class SmileyfaceFeedbackTexts {
     this.textHint = 'Text on the screenshot',
     this.add = 'Add',
   });
+
+  /// The title of the sheet.
+  final String title;
 
   /// The title of the intro on the first start.
   final String introTitle;

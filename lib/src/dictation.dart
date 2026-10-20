@@ -1,7 +1,8 @@
 part of 'feedback.dart';
 
 /// The microphone button: turns what the tester says into text at the end of
-/// [message]. A border while it waits, red with a stop sign while it listens.
+/// [message]. Ghost while it waits, like the attach button, red with a stop
+/// sign while it listens.
 class _Dictation extends HookWidget {
   const _Dictation({
     required this.message,
@@ -68,7 +69,7 @@ class _Dictation extends HookWidget {
     }
 
     return FButton.icon(
-      variant: listening.value ? .destructive : .outline,
+      variant: listening.value ? .destructive : .ghost,
       semanticsLabel: listening.value ? texts.stopDictating : texts.dictate,
       onPress: !enabled
           ? null

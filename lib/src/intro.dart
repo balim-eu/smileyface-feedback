@@ -1,7 +1,8 @@
 part of 'feedback.dart';
 
 /// Tells testers on the first start that shaking the device opens the
-/// feedback. Shaking opens it and ends the intro, Skip ends it without.
+/// feedback, on a card with the yellow of smileyface.dev. Shaking opens it
+/// and ends the intro, Skip ends it without.
 class _FeedbackIntro extends HookWidget {
   const _FeedbackIntro({required this.config, required this.onSkip});
 
@@ -20,13 +21,15 @@ class _FeedbackIntro extends HookWidget {
       return null;
     }, [wiggle]);
 
+    final colors = theme.colors;
+
     return Stack(
       children: [
-        Positioned.fill(child: ColoredBox(color: theme.colors.barrier)),
+        Positioned.fill(child: ColoredBox(color: colors.barrier)),
         SafeArea(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(20),
               child: TweenAnimationBuilder(
                 tween: Tween<double>(begin: 0, end: 1),
                 duration: const Duration(milliseconds: 250),
@@ -39,52 +42,65 @@ class _FeedbackIntro extends HookWidget {
                   ),
                 ),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: config.panelWidth),
+                  constraints: const BoxConstraints(maxWidth: 400),
                   child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: theme.colors.background,
-                      border: Border.all(color: theme.colors.border),
-                      borderRadius: theme.style.borderRadius.lg,
+                    decoration: ShapeDecoration(
+                      color: colors.card,
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        side: BorderSide(color: colors.border),
+                      ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const SizedBox(height: 8),
-                          AnimatedBuilder(
-                            animation: wiggle,
-                            builder: (context, child) => Transform.rotate(
-                              angle: _wiggle(wiggle.value),
-                              child: child,
-                            ),
-                            child: Icon(
-                              FLucideIcons.vibrate,
-                              size: 40,
-                              color: theme.colors.primary,
+                          Center(
+                            child: Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                color: _accent,
+                                shape: BoxShape.circle,
+                              ),
+                              child: AnimatedBuilder(
+                                animation: wiggle,
+                                builder: (context, child) => Transform.rotate(
+                                  angle: _wiggle(wiggle.value),
+                                  child: child,
+                                ),
+                                child: const Icon(
+                                  FLucideIcons.vibrate,
+                                  size: 30,
+                                  color: _accentForeground,
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
                           Text(
                             config.texts.introTitle,
                             textAlign: TextAlign.center,
-                            style: theme.typography.body.xl.copyWith(
-                              color: theme.colors.foreground,
-                              fontWeight: FontWeight.w600,
+                            style: theme.typography.display.xl2.copyWith(
+                              color: colors.foreground,
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             config.texts.introBody,
                             textAlign: TextAlign.center,
-                            style: theme.typography.body.sm.copyWith(
-                              color: theme.colors.mutedForeground,
+                            style: theme.typography.body.md.copyWith(
+                              color: colors.mutedForeground,
+                              height: 1.4,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           FButton(
-                            variant: .outline,
+                            variant: .secondary,
                             onPress: onSkip,
                             child: Text(config.texts.skip),
                           ),

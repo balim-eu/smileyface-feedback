@@ -29,3 +29,15 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   speech_to_text_platform_interface: ^2.5.0
   very_good_analysis: ^9.0.0
+
+flutter:
+  fonts:
+    # The fonts of smileyface.dev, under the SIL Open Font License next to them.
+    - family: BricolageGrotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque/BricolageGrotesque.ttf
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree/Figtree.ttf
+        - asset: assets/fonts/Figtree/Figtree-Italic.ttf
+          style: italic

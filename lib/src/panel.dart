@@ -1,8 +1,9 @@
 part of 'feedback.dart';
 
-/// The feedback as a sheet at the bottom, in one row: the screenshot, the
-/// message, dictation and send. Dragging it down, tapping above it or back
-/// closes it.
+/// The feedback as a sheet at the bottom, like the form sheets and the
+/// composer of the smileyface app: a grabber and a header, the screenshot as
+/// a pending attachment, and one row with the attach button, the message,
+/// dictation and send. Dragging it down, tapping above it or back closes it.
 class _FeedbackPanel extends HookWidget {
   const _FeedbackPanel({
     required this.app,
@@ -86,6 +87,7 @@ class _FeedbackPanel extends HookWidget {
         return;
       }
       if (!context.mounted) return;
+      unawaited(HapticFeedback.lightImpact());
       status.value = _Status.sent;
       await Future<void>.delayed(const Duration(milliseconds: 1500));
       if (context.mounted) await dismiss();
@@ -134,10 +136,22 @@ class _FeedbackPanel extends HookWidget {
       ),
       _ => null,
     };
+    final colors = theme.colors;
     final bottom = math.max(
       MediaQuery.viewInsetsOf(context).bottom,
       MediaQuery.viewPaddingOf(context).bottom,
     );
+
+    void edit() {
+      // The editor ends the dictation.
+      listening.value = false;
+      editing.value = true;
+    }
+
+    void remove() {
+      attached.value = false;
+      marks.value = const [];
+    }
 
     return Stack(
       children: [
@@ -149,15 +163,14 @@ class _FeedbackPanel extends HookWidget {
                 focus.hasFocus ? focus.unfocus() : unawaited(dismiss()),
             child: FadeTransition(
               opacity: slide,
-              child: ColoredBox(color: theme.colors.barrier),
+              child: ColoredBox(color: colors.barrier),
             ),
           ),
         ),
-        // One pixel beyond the screen, so only the top border shows.
         Positioned(
-          left: -1,
-          right: -1,
-          bottom: -1,
+          left: 0,
+          right: 0,
+          bottom: 0,
           child: SlideTransition(
             position: offset,
             child: Align(
@@ -184,21 +197,13 @@ class _FeedbackPanel extends HookWidget {
                     },
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: theme.colors.background,
-                        border: Border.all(color: theme.colors.border),
+                        color: colors.background,
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 24,
-                            offset: Offset(0, -4),
-                          ),
-                        ],
                       ),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(13, 8, 13, 13 + bottom),
+                        padding: EdgeInsets.only(bottom: bottom),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,80 +212,141 @@ class _FeedbackPanel extends HookWidget {
                               child: Container(
                                 width: 36,
                                 height: 4,
+                                margin: const EdgeInsets.only(top: 8),
                                 decoration: BoxDecoration(
-                                  color: theme.colors.mutedForeground
-                                      .withValues(alpha: 0.3),
+                                  color: colors.border,
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            if (note case (final text, final color)) ...[
-                              Text(
-                                text,
-                                style: theme.typography.body.xs.copyWith(
-                                  color: color,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                            if (status.value == _Status.sent)
-                              _Sent(text: texts.sent)
-                            else
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 4, 8, 0),
+                              child: Row(
                                 children: [
-                                  _ScreenshotButton(
-                                    screenshot: screenshot,
-                                    marks: marks.value,
-                                    config: config,
-                                    attached: attached.value,
-                                    texts: texts,
-                                    onPress: sending
-                                        ? null
-                                        : () {
-                                            if (!attached.value) {
-                                              attached.value = true;
-                                              return;
-                                            }
-                                            // The editor ends the dictation.
-                                            listening.value = false;
-                                            editing.value = true;
-                                          },
-                                  ),
-                                  const SizedBox(width: 8),
                                   Expanded(
-                                    child: FTextField(
-                                      control: .managed(controller: message),
-                                      focusNode: focus,
-                                      hint: texts.hint,
-                                      textCapitalization: .sentences,
-                                      minLines: 1,
-                                      maxLines: 4,
-                                      enabled: !sending,
+                                    child: Text(
+                                      texts.title,
+                                      style: theme.typography.body.lg.copyWith(
+                                        color: colors.foreground,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.2,
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  _Dictation(
-                                    message: message,
-                                    listening: listening,
-                                    unavailable: unavailable,
-                                    enabled: !sending,
-                                    texts: texts,
-                                  ),
-                                  const SizedBox(width: 8),
                                   FButton.icon(
-                                    variant: .primary,
-                                    semanticsLabel: texts.send,
-                                    onPress: canSend
-                                        ? () => unawaited(send())
-                                        : null,
-                                    child: sending
-                                        ? const FCircularProgress()
-                                        : const Icon(FLucideIcons.arrowUp),
+                                    variant: .ghost,
+                                    semanticsLabel: texts.close,
+                                    onPress: () => unawaited(dismiss()),
+                                    child: const Icon(FLucideIcons.x),
                                   ),
                                 ],
                               ),
+                            ),
+                            if (attached.value && status.value != _Status.sent)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  8,
+                                  20,
+                                  4,
+                                ),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _Attachment(
+                                    screenshot: screenshot,
+                                    marks: marks.value,
+                                    config: config,
+                                    onEdit: sending ? null : edit,
+                                    onRemove: sending ? null : remove,
+                                  ),
+                                ),
+                              ),
+                            if (note case (final text, final color))
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  8,
+                                  20,
+                                  0,
+                                ),
+                                child: Text(
+                                  text,
+                                  style: theme.typography.body.xs.copyWith(
+                                    color: color,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            // The composer is part of its field: a tap on its
+                            // buttons keeps the keyboard up.
+                            TextFieldTapRegion(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(color: colors.border),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: status.value == _Status.sent
+                                      ? _Sent(text: texts.sent)
+                                      : Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            FButton.icon(
+                                              variant: .ghost,
+                                              semanticsLabel: attached.value
+                                                  ? texts.drawOnScreenshot
+                                                  : texts.attachScreenshot,
+                                              onPress: sending
+                                                  ? null
+                                                  : attached.value
+                                                  ? edit
+                                                  : () => attached.value = true,
+                                              child: const Icon(
+                                                FLucideIcons.imagePlus,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: FTextField.multiline(
+                                                control: .managed(
+                                                  controller: message,
+                                                ),
+                                                focusNode: focus,
+                                                hint: texts.hint,
+                                                minLines: 1,
+                                                maxLines: 5,
+                                                enabled: !sending,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            _Dictation(
+                                              message: message,
+                                              listening: listening,
+                                              unavailable: unavailable,
+                                              enabled: !sending,
+                                              texts: texts,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            FButton.icon(
+                                              variant: .secondary,
+                                              semanticsLabel: texts.send,
+                                              onPress: canSend
+                                                  ? () => unawaited(send())
+                                                  : null,
+                                              child: sending
+                                                  ? const FCircularProgress()
+                                                  : const Icon(
+                                                      FLucideIcons.arrowUp,
+                                                    ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -298,16 +364,15 @@ class _FeedbackPanel extends HookWidget {
 
 enum _Status { ready, sending, sent, failed }
 
-/// Attaches the screenshot, or shows the attached one, which a tap opens for
-/// drawing and writing.
-class _ScreenshotButton extends HookWidget {
-  const _ScreenshotButton({
+/// The attached screenshot, like a pending file of the chat: a tap opens it
+/// for drawing and writing, the badge removes it.
+class _Attachment extends HookWidget {
+  const _Attachment({
     required this.screenshot,
     required this.marks,
     required this.config,
-    required this.attached,
-    required this.texts,
-    required this.onPress,
+    required this.onEdit,
+    required this.onRemove,
   });
 
   final _Screenshot screenshot;
@@ -316,43 +381,66 @@ class _ScreenshotButton extends HookWidget {
 
   final SmileyfaceFeedbackConfig config;
 
-  final bool attached;
+  final VoidCallback? onEdit;
 
-  final SmileyfaceFeedbackTexts texts;
-
-  final VoidCallback? onPress;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
-    if (!attached) {
-      return FButton.icon(
-        semanticsLabel: texts.attachScreenshot,
-        onPress: onPress,
-        child: const Icon(FLucideIcons.imagePlus),
-      );
-    }
+    final colors = context.theme.colors;
 
-    return FButton.raw(
-      variant: .outline,
-      semanticsLabel: texts.drawOnScreenshot,
-      onPress: onPress,
-      child: SizedBox.square(
-        dimension: 44,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: FittedBox(
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-              child: CustomPaint(
-                size: screenshot.size,
-                painter: _MarksPainter(screenshot, marks, config),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Semantics(
+          button: true,
+          label: config.texts.drawOnScreenshot,
+          child: GestureDetector(
+            onTap: onEdit,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: ColoredBox(
+                color: colors.muted,
+                child: SizedBox.square(
+                  dimension: 68,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                    child: CustomPaint(
+                      size: screenshot.size,
+                      painter: _MarksPainter(screenshot, marks, config),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
-      ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: Semantics(
+            button: true,
+            label: config.texts.removeScreenshot,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: colors.foreground,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  FLucideIcons.x,
+                  size: 14,
+                  color: colors.background,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

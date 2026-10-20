@@ -267,18 +267,39 @@ void main() {
     ) async {
       await open(tester);
       expect(button(tester, _send).onPress, isNull, reason: 'nothing to send');
+      expect(find.bySemanticsLabel('Remove the screenshot'), findsNothing);
       await tester.tap(find.byIcon(FLucideIcons.imagePlus));
       await tester.pump();
-      expect(find.byIcon(FLucideIcons.imagePlus), findsNothing);
+      expect(find.bySemanticsLabel('Remove the screenshot'), findsOneWidget);
       expect(button(tester, _send).onPress, isNotNull);
-      await tester.tap(find.bySemanticsLabel('Draw on the screenshot'));
+      await tester.tap(find.bySemanticsLabel('Draw on the screenshot').last);
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Done'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Remove the screenshot'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Done'), findsNothing);
-      expect(find.byIcon(FLucideIcons.imagePlus), findsOneWidget);
+      expect(find.bySemanticsLabel('Remove the screenshot'), findsNothing);
       await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('the badge removes the screenshot, the button draws on it', (
+      tester,
+    ) async {
+      await open(tester);
+      await tester.tap(find.byIcon(FLucideIcons.imagePlus));
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel('Remove the screenshot'));
+      await tester.pump();
+      expect(find.bySemanticsLabel('Remove the screenshot'), findsNothing);
+      expect(button(tester, _send).onPress, isNull);
+      await tester.tap(find.byIcon(FLucideIcons.imagePlus));
+      await tester.pump();
+      await tester.tap(find.byIcon(FLucideIcons.imagePlus));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Done'), findsOneWidget);
+      await tester.tap(find.text('Done'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.bySemanticsLabel('Remove the screenshot'), findsOneWidget);
     });
 
     testWidgets('dictates', (tester) async {
@@ -402,7 +423,7 @@ void main() {
       await open(tester);
       await tester.tap(find.byIcon(FLucideIcons.imagePlus));
       await tester.pump();
-      await tester.tap(find.bySemanticsLabel('Draw on the screenshot'));
+      await tester.tap(find.bySemanticsLabel('Draw on the screenshot').last);
       await tester.pump();
       expect(find.text('Done'), findsOneWidget);
       await tester.binding.handlePopRoute();
